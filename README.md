@@ -22,7 +22,7 @@ to model complex action distributions in data.
 
 ## Installation
 
-FQL requires Python 3.9+ and is based on JAX. The main dependencies are
+FQL requires Python 3.10 and is based on JAX. The main dependencies are
 `jax >= 0.4.26`, `ogbench == 1.1.0`, and `gymnasium == 0.29.1`.
 To install the full dependencies, simply run:
 ```bash
@@ -31,6 +31,24 @@ pip install -r requirements.txt
 
 > [!NOTE]
 > To use D4RL environments, you need to additionally set up MuJoCo 2.1.0.
+
+> [!NOTE]
+> Enusre the following dependencies are installed
+> ```bash
+> sudo apt install -y \
+>     libglew-dev \
+>     libosmesa6-dev \
+>     libgl1-mesa-glx \
+>     libglfw3 \
+>     patchelf
+> ```
+> and the following environment variables are exported:
+> ```bash
+> export MUJOCO_GL=egl
+> export MUJOCO_PY_MUJOCO_PATH=$HOME/.mujoco/mujoco210
+> export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.mujoco/mujoco210/bin
+> export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
+> ```
 
 ## Usage
 
