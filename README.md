@@ -31,24 +31,7 @@ pip install -r requirements.txt
 
 > [!NOTE]
 > To use D4RL environments, you need to additionally set up MuJoCo 2.1.0.
-
-> [!NOTE]
-> Enusre the following dependencies are installed
-> ```bash
-> sudo apt install -y \
->     libglew-dev \
->     libosmesa6-dev \
->     libgl1-mesa-glx \
->     libglfw3 \
->     patchelf
-> ```
-> and the following environment variables are exported:
-> ```bash
-> export MUJOCO_GL=egl
-> export MUJOCO_PY_MUJOCO_PATH=$HOME/.mujoco/mujoco210
-> export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.mujoco/mujoco210/bin
-> export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
-> ```
+> Refer to PyTorch documentation on the installation of MuJoCo [here](https://docs.pytorch.org/rl/0.4/reference/generated/knowledge_base/MUJOCO_INSTALLATION.html)
 
 ## Usage
 
