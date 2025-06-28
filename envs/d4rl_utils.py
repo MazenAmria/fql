@@ -1,3 +1,4 @@
+import os
 import d4rl
 import gymnasium
 import numpy as np
@@ -16,6 +17,7 @@ def make_env(env_name):
 def get_dataset(
     env,
     env_name,
+    dataset_dir: Optional[str] = None,
 ):
     """Make D4RL dataset.
 
@@ -23,6 +25,8 @@ def get_dataset(
         env: Environment instance.
         env_name: Name of the environment.
     """
+    if dataset_dir is not None:
+        os.environ["D4RL_DATASET_DIR"] = dataset_dir
     dataset = d4rl.qlearning_dataset(env)
 
     terminals = np.zeros_like(dataset['rewards'])  # Indicate the end of an episode.
