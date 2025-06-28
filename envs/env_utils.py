@@ -6,7 +6,7 @@ import gymnasium
 import numpy as np
 import ogbench
 from gymnasium.spaces import Box
-
+from typing import Optional
 from utils.datasets import Dataset
 
 
@@ -88,13 +88,20 @@ class FrameStackWrapper(gymnasium.Wrapper):
         return self.get_observation(), reward, terminated, truncated, info
 
 
-def make_env_and_datasets(env_name, frame_stack=None, action_clip_eps=1e-5):
+def make_env_and_datasets(
+        env_name: str,
+        dataset_dir: Optional[str] = None,
+        frame_stack: Optional[int] = None,
+        action_clip_eps: Optional[float] = 1e-5
+):
     """Make offline RL environment and datasets.
 
     Args:
         env_name: Name of the environment or dataset.
-        frame_stack: Number of frames to stack.
-        action_clip_eps: Epsilon for action clipping.
+        dataset_dir (Optional[str]): Custom path to the directory containing datasets.
+            If None, the default dataset location defined by the environment library (e.g., OGBench or D4RL) will be used.
+        frame_stack (Optional[int]): Number of frames to stack.
+        action_clip_eps (Optional[float]): Epsilon for action clipping.
 
     Returns:
         A tuple of the environment, evaluation environment, training dataset, and validation dataset.
@@ -102,20 +109,22 @@ def make_env_and_datasets(env_name, frame_stack=None, action_clip_eps=1e-5):
 
     if 'singletask' in env_name:
         # OGBench.
-        env, train_dataset, val_dataset = ogbench.make_env_and_datasets(env_name)
+        env, train_dataset, val_dataset = ogbench.make_env_and_datasets(env_name, dataset_dir)
         eval_env = ogbench.make_env_and_datasets(env_name, env_only=True)
         env = EpisodeMonitor(env, filter_regexes=['.*privileged.*', '.*proprio.*'])
         eval_env = EpisodeMonitor(eval_env, filter_regexes=['.*privileged.*', '.*proprio.*'])
         train_dataset = Dataset.create(**train_dataset)
         val_dataset = Dataset.create(**val_dataset)
+
     elif 'antmaze' in env_name and ('diverse' in env_name or 'play' in env_name or 'umaze' in env_name):
         # D4RL AntMaze.
         from envs import d4rl_utils
 
         env = d4rl_utils.make_env(env_name)
         eval_env = d4rl_utils.make_env(env_name)
-        dataset = d4rl_utils.get_dataset(env, env_name)
+        dataset = d4rl_utils.get_dataset(env, env_name, dataset_dir)
         train_dataset, val_dataset = dataset, None
+
     elif 'pen' in env_name or 'hammer' in env_name or 'relocate' in env_name or 'door' in env_name:
         # D4RL Adroit.
         import d4rl.hand_manipulation_suite  # noqa
@@ -123,7 +132,7 @@ def make_env_and_datasets(env_name, frame_stack=None, action_clip_eps=1e-5):
 
         env = d4rl_utils.make_env(env_name)
         eval_env = d4rl_utils.make_env(env_name)
-        dataset = d4rl_utils.get_dataset(env, env_name)
+        dataset = d4rl_utils.get_dataset(env, env_name, dataset_dir)
         train_dataset, val_dataset = dataset, None
     else:
         raise ValueError(f'Unsupported environment: {env_name}')
