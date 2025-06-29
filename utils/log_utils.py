@@ -71,11 +71,7 @@ def setup_wandb(
     if logging_dir is None:
         wandb_output_dir = tempfile.mkdtemp()
     else:
-        if os.path.isdir(logging_dir):
-            wandb_output_dir = logging_dir
-        else:
-            os.makedirs(logging_dir, exist_ok=True)
-            wandb_output_dir = logging_dir
+        wandb_output_dir = logging_dir
 
     tags = [group] if group is not None else None
 
