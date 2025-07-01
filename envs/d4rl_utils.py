@@ -1,4 +1,6 @@
 import os
+from typing import Optional
+
 import d4rl
 import gymnasium
 import numpy as np

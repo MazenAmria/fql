@@ -109,8 +109,12 @@ def make_env_and_datasets(
 
     if 'singletask' in env_name:
         # OGBench.
-        env, train_dataset, val_dataset = ogbench.make_env_and_datasets(env_name, dataset_dir)
-        eval_env = ogbench.make_env_and_datasets(env_name, env_only=True)
+        if dataset_dir is None:
+            env, train_dataset, val_dataset = ogbench.make_env_and_datasets(env_name)
+            eval_env = ogbench.make_env_and_datasets(env_name, env_only=True)
+        else:
+            env, train_dataset, val_dataset = ogbench.make_env_and_datasets(env_name, dataset_dir)
+            eval_env = ogbench.make_env_and_datasets(env_name, dataset_dir, env_only=True)
         env = EpisodeMonitor(env, filter_regexes=['.*privileged.*', '.*proprio.*'])
         eval_env = EpisodeMonitor(eval_env, filter_regexes=['.*privileged.*', '.*proprio.*'])
         train_dataset = Dataset.create(**train_dataset)
