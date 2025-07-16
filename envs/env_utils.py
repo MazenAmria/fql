@@ -92,7 +92,8 @@ def make_env_and_datasets(
         env_name: str,
         dataset_dir: Optional[str] = None,
         frame_stack: Optional[int] = None,
-        action_clip_eps: Optional[float] = 1e-5
+        action_clip_eps: Optional[float] = 1e-5,
+        num_evaluation_envs: int = 1
 ):
     """Make offline RL environment and datasets.
 
@@ -111,12 +112,12 @@ def make_env_and_datasets(
         # OGBench.
         if dataset_dir is None:
             env, train_dataset, val_dataset = ogbench.make_env_and_datasets(env_name)
-            eval_env = ogbench.make_env_and_datasets(env_name, env_only=True)
+            eval_envs = [ogbench.make_env_and_datasets(env_name, env_only=True) for _ in range(num_evaluation_envs)]
         else:
             env, train_dataset, val_dataset = ogbench.make_env_and_datasets(env_name, dataset_dir)
-            eval_env = ogbench.make_env_and_datasets(env_name, dataset_dir, env_only=True)
+            eval_envs = [ogbench.make_env_and_datasets(env_name, dataset_dir, env_only=True) for _ in range(num_evaluation_envs)]
         env = EpisodeMonitor(env, filter_regexes=['.*privileged.*', '.*proprio.*'])
-        eval_env = EpisodeMonitor(eval_env, filter_regexes=['.*privileged.*', '.*proprio.*'])
+        eval_envs = [EpisodeMonitor(eval_env, filter_regexes=['.*privileged.*', '.*proprio.*']) for eval_env in eval_envs]
         train_dataset = Dataset.create(**train_dataset)
         val_dataset = Dataset.create(**val_dataset)
 
@@ -125,7 +126,7 @@ def make_env_and_datasets(
         from envs import d4rl_utils
 
         env = d4rl_utils.make_env(env_name)
-        eval_env = d4rl_utils.make_env(env_name)
+        eval_envs = [d4rl_utils.make_env(env_name) for _ in range(num_evaluation_envs)]
         dataset = d4rl_utils.get_dataset(env, env_name, dataset_dir)
         train_dataset, val_dataset = dataset, None
 
@@ -135,7 +136,7 @@ def make_env_and_datasets(
         from envs import d4rl_utils
 
         env = d4rl_utils.make_env(env_name)
-        eval_env = d4rl_utils.make_env(env_name)
+        eval_envs = [d4rl_utils.make_env(env_name) for _ in range(num_evaluation_envs)]
         dataset = d4rl_utils.get_dataset(env, env_name, dataset_dir)
         train_dataset, val_dataset = dataset, None
     else:
@@ -143,10 +144,11 @@ def make_env_and_datasets(
 
     if frame_stack is not None:
         env = FrameStackWrapper(env, frame_stack)
-        eval_env = FrameStackWrapper(eval_env, frame_stack)
+        eval_envs = [FrameStackWrapper(eval_env, frame_stack) for eval_env in eval_envs]
 
     env.reset()
-    eval_env.reset()
+    for eval_env in eval_envs:
+        eval_env.reset()
 
     # Clip dataset actions.
     if action_clip_eps is not None:
@@ -158,4 +160,7 @@ def make_env_and_datasets(
                 add_or_replace=dict(actions=np.clip(val_dataset['actions'], -1 + action_clip_eps, 1 - action_clip_eps))
             )
 
-    return env, eval_env, train_dataset, val_dataset
+    if num_evaluation_envs == 1:
+        eval_envs = eval_envs[0]
+
+    return env, eval_envs, train_dataset, val_dataset
